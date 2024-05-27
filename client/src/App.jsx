@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
 import Header from './components/Header'
 
+import FooterCom from './components/Footer'
+
 
 export default function App() {
   return (
@@ -25,6 +27,7 @@ export default function App() {
 
 
     </Routes>
+    <FooterCom/>
     </BrowserRouter>
   )
 }
