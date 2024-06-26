@@ -31,10 +31,10 @@ export const signup = async (req, res , next ) => {
 };
 
 export const signin=async(req,res,next)=>{
-  const {username, password}=req.body;
+  const {username , password}=req.body;
 
-  if(!username || !password || username==="" || password===""){
-    next (errorHandler(400, 'all fields are required'));
+  if(!username || !password || username==='' || password===''){
+    
   }
 
 }
