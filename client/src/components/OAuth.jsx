@@ -3,22 +3,43 @@ import React from "react";
 import { AiFillGoogleCircle } from "react-icons/ai";
 import { GoogleAuthProvider, signInWithPopup, getAuth } from "firebase/auth";
 import { app } from "../firebase";
+import { useDispatch } from "react-redux";
+import { signInSuccess } from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 
 export default function OAuth() {
   const auth = getAuth(app);
+  const dispatch=useDispatch();
+
+  const navigate = useNavigate();
   const handleGoogleClick = async () => {
-    const provider = new GoogleAuthProvider(); // Create a new GoogleAuthProvider instance
+    const provider = new GoogleAuthProvider(); 
   
-    // // Optional: Set custom parameters (e.g., always prompt the user to select an account)
+    
     provider.setCustomParameters({ prompt: "select_account" });
   
     try {
-      // Sign in with a popup window using the Google provider
+     
       const resultsFromGoogle = await signInWithPopup(auth, provider);
-      console.log(resultsFromGoogle); // Log the user information
+      const res=await fetch('/api/auth/google',{
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          name:resultsFromGoogle.user.displayName,
+          email:resultsFromGoogle.user.email,
+          googlePhotoUrl:resultsFromGoogle.user.photoURL,
+        })
+      })
+      const data=await res.json();
+      if(res.ok){
+        dispatch(signInSuccess(data));
+        navigate('/');
+      }
+
+      
     } catch (error) {
-      console.log(error); // Log any errors that occur during sign-in
+      console.log(error); 
     }
   };
 
