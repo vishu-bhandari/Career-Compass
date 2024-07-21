@@ -31,8 +31,12 @@ export default function DashProfile() {
           id="password"
           placeholder="Password"
         ></TextInput>
-        <Button type="Submit">Update</Button>
+        <Button type="Submit" gradientDuoTone='purpleToBlue' outline>Update</Button>
       </form>
+      <div className="text-red-500 flex  justify-between mt-5 ">
+        <span className=" cursor-pointer underline">Delete Account</span>
+        <span className=" cursor-pointer underline">Sign Out</span>
+      </div>
     </div>
   );
 }
