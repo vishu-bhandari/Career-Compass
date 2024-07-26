@@ -18,8 +18,6 @@ export default function DashProfile() {
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
 
-  
-
   const filePickerRef = useRef();
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -57,13 +55,11 @@ export default function DashProfile() {
         setImageFileUploadProgress(null);
         setImageFile(null);
         setImageFileUrl(null);
-       
-       
-       
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setImageFileUrl(downloadURL);
+          console.log(`hello ${imageFileUrl}`);
         });
       }
     );
@@ -99,15 +95,14 @@ export default function DashProfile() {
               strokeWidth={5}
               styles={{
                 root: {
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
+                  width: "100%",
+                  height: "100%",
+                  position: "absolute",
                   top: 0,
                   left: 0,
-
                 },
                 path: {
-                  stroke: `rgba(62,152,199, ${imageFileUploadProgress / 100 })`
+                  stroke: `rgba(62,152,199, ${imageFileUploadProgress / 100})`,
                 },
               }}
             />
@@ -116,10 +111,16 @@ export default function DashProfile() {
             src={imageFileUrl || currentUser.profilePicture}
             alt="user"
             className={`rounded-full w-full h-full border-8 object-cover border-[lightgray] 
-            ${imageFileUploadProgress && imageFileUploadProgress < 100 &&  'opacity-60'}`}
+            ${
+              imageFileUploadProgress &&
+              imageFileUploadProgress < 100 &&
+              "opacity-60"
+            }`}
           />
         </div>
-        {imageFileUploadError && <Alert color="failure">{imageFileUploadError}</Alert>}
+        {imageFileUploadError && (
+          <Alert color="failure">{imageFileUploadError}</Alert>
+        )}
         <TextInput
           type="text"
           id="username"
