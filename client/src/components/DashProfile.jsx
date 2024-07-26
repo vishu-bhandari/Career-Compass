@@ -15,16 +15,15 @@ export default function DashProfile() {
     }
   };
 
-  useEffect(()=>{
-    if(imagefile){
+  useEffect(() => {
+    if (imagefile) {
       uploadImage();
     }
-  },[imagefile]);
+  }, [imagefile]);
 
-  const uploadImage=async()=>{
-    console.log('uploading image...')
-  }
-
+  const uploadImage = async () => {
+    console.log("uploading image...");
+  };
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
