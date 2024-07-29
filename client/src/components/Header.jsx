@@ -47,7 +47,7 @@ export default function Header() {
               arrowIcon={false}
               inline
               label={
-                <Avatar alt="user" img={currentUser.profilePicture}></Avatar>
+                <Avatar rounded  status={currentUser ? 'online' : undefined} alt="user" img={currentUser.profilePicture}></Avatar>
               }
             >
               <Dropdown.Header>
