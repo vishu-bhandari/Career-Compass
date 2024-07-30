@@ -23,7 +23,8 @@ export default function DashProfile() {
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [imageFileUploading, setImageFileUploading]=useState(false);
-  const [updateUserSuccess,setUpdateUserSuccess]=useState(null)
+  const [updateUserSuccess,setUpdateUserSuccess]=useState(null);
+  const [updateUserError,setUpdateUserError]=useState(null);
   const [formData, setFormData] = useState({
     username: currentUser.username,
     email: currentUser.email,
@@ -88,11 +89,14 @@ export default function DashProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.email) {
-      alert("Username and email are required");
+    setUpdateUserError(null);
+    setUpdateUserSuccess(null);
+    if (!formData.username || !formData.email || Object.keys(formData).length === 0) {
+      setUpdateUserError('No Changes made');
       return;
     }
     if(imageFileUploading){
+      setUpdateUserError('Please Wait for Image to Upload')
       return 
     }
 
@@ -109,6 +113,7 @@ export default function DashProfile() {
       if (!res.ok) {
         console.error("Server error:", data.message);
         dispatch(updateFailure(data.message));
+        setUpdateUserError(data.message);
       } else {
         dispatch(updateSuccess(data));
         setUpdateUserSuccess(("User's profile Updated successfully"))
@@ -116,6 +121,8 @@ export default function DashProfile() {
     } catch (error) {
       console.error("Network error:", error.message);
       dispatch(updateFailure(error.message));
+      setUpdateUserError(error.message);
+      
     }
   };
 
@@ -196,7 +203,10 @@ export default function DashProfile() {
         <span className="cursor-pointer underline">Sign Out</span>
       </div>
       {updateUserSuccess && (
-        <Alert color='success' className="mt-5">{updateUserSuccess}</Alert>
+        <Alert color='success' className="mt-5 ">{updateUserSuccess}</Alert>
+      )}
+      {updateUserError && (
+        <Alert color='failure' className="mt-5">{updateUserError}</Alert>
       )}
     </div>
   );
