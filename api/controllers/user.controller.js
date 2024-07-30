@@ -1,6 +1,6 @@
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from "bcryptjs";
-import User from '../models/user.model.js';
+import User from "../models/user.model.js";
 
 export const test = (req, res) => {
   res.json({ message: "API is working" });
@@ -25,7 +25,9 @@ export const updateUser = async (req, res, next) => {
   // Validate username if provided
   if (req.body.username) {
     if (req.body.username.length < 7 || req.body.username.length > 20) {
-      return next(errorHandler(400, "Username must be between 7 and 20 characters"));
+      return next(
+        errorHandler(400, "Username must be between 7 and 20 characters")
+      );
     }
     if (req.body.username.includes(" ")) {
       return next(errorHandler(400, "Username cannot contain spaces"));
@@ -34,7 +36,9 @@ export const updateUser = async (req, res, next) => {
       return next(errorHandler(400, "Username must be lowercase"));
     }
     if (!req.body.username.match(/^[a-zA-Z0-9]+$/)) {
-      return next(errorHandler(400, "Username can only contain letters and numbers"));
+      return next(
+        errorHandler(400, "Username can only contain letters and numbers")
+      );
     }
     updates.username = req.body.username;
   }
@@ -69,15 +73,27 @@ export const updateUser = async (req, res, next) => {
   }
 };
 
-export const deleteUser= async(req,res,next)=>{
-  if(req.user.id !== req.params.userId){
-    return next(errorHandler(403, 'You are not allowed to delete this account.'))
+export const deleteUser = async (req, res, next) => {
+  if (req.user.id !== req.params.userId) {
+    return next(
+      errorHandler(403, "You are not allowed to delete this account.")
+    );
   }
   try {
     await User.findByIdAndDelete(req.params.userId);
-    res.status(200).json('User has been deleted');
-    
+    res.status(200).json("User has been deleted");
   } catch (error) {
     next(error);
   }
-}
+};
+
+export const signout = async (req, res, next) => {
+  try {
+    res
+      .clearCookie("access_token")
+      .status(200)
+      .json("User has been signed out");
+  } catch (error) {
+    next(error);
+  }
+};
