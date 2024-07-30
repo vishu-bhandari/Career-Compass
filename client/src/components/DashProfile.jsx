@@ -88,20 +88,32 @@ export default function DashProfile() {
   };
 
   const handleSubmit = async (e) => {
+    // Prevent the default form submission behavior
     e.preventDefault();
+  
+    // Reset any existing error or success messages
     setUpdateUserError(null);
     setUpdateUserSuccess(null);
+  
+    // Validate the form data
     if (!formData.username || !formData.email || Object.keys(formData).length === 0) {
+      // If username or email is missing, or if formData is empty, show an error message
       setUpdateUserError('No Changes made');
       return;
     }
-    if(imageFileUploading){
-      setUpdateUserError('Please Wait for Image to Upload')
-      return 
+  
+    // Check if the image is still uploading
+    if (imageFileUploading) {
+      // If the image is still uploading, show an error message
+      setUpdateUserError('Please Wait for Image to Upload');
+      return;
     }
-
+  
     try {
+      // Dispatch an action to indicate that the update process has started
       dispatch(updateStart());
+  
+      // Send a PUT request to update the user profile
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'PUT',
         headers: {
@@ -109,26 +121,45 @@ export default function DashProfile() {
         },
         body: JSON.stringify(formData),
       });
+  
+      // Parse the response data
       const data = await res.json();
+  
+      // Check if the response status is not OK
       if (!res.ok) {
+        // Log the server error message
         console.error("Server error:", data.message);
+  
+        // Dispatch an action to indicate the update failure with the server error message
         dispatch(updateFailure(data.message));
+  
+        // Show the server error message to the user
         setUpdateUserError(data.message);
       } else {
+        // Dispatch an action to indicate the update success with the response data
         dispatch(updateSuccess(data));
-        setUpdateUserSuccess(("User's profile Updated successfully"))
+  
+        // Show a success message to the user
+        setUpdateUserSuccess("User's profile updated successfully");
       }
     } catch (error) {
+      // Log the network error message
       console.error("Network error:", error.message);
+  
+      // Dispatch an action to indicate the update failure with the network error message
       dispatch(updateFailure(error.message));
+  
+      // Show the network error message to the user
       setUpdateUserError(error.message);
-      
     }
   };
-
+  
+  // Handle changes to form input fields
   const handleChange = (e) => {
+    // Update the formData state with the new input value
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+  
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
