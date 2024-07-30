@@ -1,4 +1,4 @@
-import { Alert, Button, TextInput } from "flowbite-react";
+import { Alert, Button, Modal, TextInput } from "flowbite-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -15,6 +15,7 @@ import {
   updateFailure,
   updateSuccess,
 } from "../redux/user/userSlice.js";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashProfile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -22,9 +23,10 @@ export default function DashProfile() {
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
-  const [imageFileUploading, setImageFileUploading]=useState(false);
-  const [updateUserSuccess,setUpdateUserSuccess]=useState(null);
-  const [updateUserError,setUpdateUserError]=useState(null);
+  const [imageFileUploading, setImageFileUploading] = useState(false);
+  const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
+  const [updateUserError, setUpdateUserError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     username: currentUser.username,
     email: currentUser.email,
@@ -70,7 +72,9 @@ export default function DashProfile() {
         setImageFileUploadProgress(Math.floor(progress));
       },
       (error) => {
-        setImageFileUploadError("Could not upload image (File must be less than 2MB)");
+        setImageFileUploadError(
+          "Could not upload image (File must be less than 2MB)"
+        );
         setImageFileUploadProgress(null);
         setImageFile(null);
         setImageFileUrl(null);
@@ -90,76 +94,79 @@ export default function DashProfile() {
   const handleSubmit = async (e) => {
     // Prevent the default form submission behavior
     e.preventDefault();
-  
+
     // Reset any existing error or success messages
     setUpdateUserError(null);
     setUpdateUserSuccess(null);
-  
+
     // Validate the form data
-    if (!formData.username || !formData.email || Object.keys(formData).length === 0) {
+    if (
+      !formData.username ||
+      !formData.email ||
+      Object.keys(formData).length === 0
+    ) {
       // If username or email is missing, or if formData is empty, show an error message
-      setUpdateUserError('No Changes made');
+      setUpdateUserError("No Changes made");
       return;
     }
-  
+
     // Check if the image is still uploading
     if (imageFileUploading) {
       // If the image is still uploading, show an error message
-      setUpdateUserError('Please Wait for Image to Upload');
+      setUpdateUserError("Please Wait for Image to Upload");
       return;
     }
-  
+
     try {
       // Dispatch an action to indicate that the update process has started
       dispatch(updateStart());
-  
+
       // Send a PUT request to update the user profile
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
-  
+
       // Parse the response data
       const data = await res.json();
-  
+
       // Check if the response status is not OK
       if (!res.ok) {
         // Log the server error message
         console.error("Server error:", data.message);
-  
+
         // Dispatch an action to indicate the update failure with the server error message
         dispatch(updateFailure(data.message));
-  
+
         // Show the server error message to the user
         setUpdateUserError(data.message);
       } else {
         // Dispatch an action to indicate the update success with the response data
         dispatch(updateSuccess(data));
-  
+
         // Show a success message to the user
         setUpdateUserSuccess("User's profile updated successfully");
       }
     } catch (error) {
       // Log the network error message
       console.error("Network error:", error.message);
-  
+
       // Dispatch an action to indicate the update failure with the network error message
       dispatch(updateFailure(error.message));
-  
+
       // Show the network error message to the user
       setUpdateUserError(error.message);
     }
   };
-  
+
   // Handle changes to form input fields
   const handleChange = (e) => {
     // Update the formData state with the new input value
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
-  
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
@@ -190,7 +197,9 @@ export default function DashProfile() {
                   left: 0,
                 },
                 path: {
-                  stroke: `rgba(62, 152, 199, ${imageFileUploadProgress / 100})`,
+                  stroke: `rgba(62, 152, 199, ${
+                    imageFileUploadProgress / 100
+                  })`,
                 },
               }}
             />
@@ -199,11 +208,15 @@ export default function DashProfile() {
             src={imageFileUrl || currentUser.profilePicture}
             alt="user"
             className={`rounded-full w-full h-full border-8 object-cover border-[lightgray] ${
-              imageFileUploadProgress !== null && imageFileUploadProgress < 100 && "opacity-60"
+              imageFileUploadProgress !== null &&
+              imageFileUploadProgress < 100 &&
+              "opacity-60"
             }`}
           />
         </div>
-        {imageFileUploadError && <Alert color="failure">{imageFileUploadError}</Alert>}
+        {imageFileUploadError && (
+          <Alert color="failure">{imageFileUploadError}</Alert>
+        )}
         <TextInput
           type="text"
           id="username"
@@ -225,20 +238,55 @@ export default function DashProfile() {
           value={formData.password}
           onChange={handleChange}
         />
-        <Button type="submit" gradientDuoTone="purpleToBlue" outline disabled={loading}>
+        <Button
+          type="submit"
+          gradientDuoTone="purpleToBlue"
+          outline
+          disabled={loading}
+        >
           {loading ? "Updating..." : "Update"}
         </Button>
       </form>
       <div className="text-red-500 flex justify-between mt-5">
-        <span className="cursor-pointer underline">Delete Account</span>
+        <span
+          className="cursor-pointer underline"
+          onClick={() => {
+            setShowModal(true);
+          }}
+        >
+          Delete Account
+        </span>
         <span className="cursor-pointer underline">Sign Out</span>
       </div>
       {updateUserSuccess && (
-        <Alert color='success' className="mt-5 ">{updateUserSuccess}</Alert>
+        <Alert color="success" className="mt-5 ">
+          {updateUserSuccess}
+        </Alert>
       )}
       {updateUserError && (
-        <Alert color='failure' className="mt-5">{updateUserError}</Alert>
+        <Alert color="failure" className="mt-5">
+          {updateUserError}
+        </Alert>
       )}
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className=" h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+
+           <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400"> Are you sure you want to delete your account?</h3>
+           <div className="">
+            <Button color='failure' onClick={handleDeleteUser}></Button>
+           </div>
+          </div>
+          
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
