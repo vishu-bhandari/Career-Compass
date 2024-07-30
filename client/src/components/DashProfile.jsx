@@ -22,6 +22,8 @@ export default function DashProfile() {
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const [imageFileUploading, setImageFileUploading]=useState(false);
+  const [updateUserSuccess,setUpdateUserSuccess]=useState(null)
   const [formData, setFormData] = useState({
     username: currentUser.username,
     email: currentUser.email,
@@ -52,6 +54,7 @@ export default function DashProfile() {
   }, [imageFile]);
 
   const uploadImage = async () => {
+    setImageFileUploading(true);
     setImageFileUploadError(null);
     setLoading(true);
     const storage = getStorage(app);
@@ -77,6 +80,7 @@ export default function DashProfile() {
           setImageFileUrl(downloadURL);
           setFormData({ ...formData, profilePicture: downloadURL });
           setLoading(false);
+          setImageFileUploading(false);
         });
       }
     );
@@ -87,6 +91,9 @@ export default function DashProfile() {
     if (!formData.username || !formData.email) {
       alert("Username and email are required");
       return;
+    }
+    if(imageFileUploading){
+      return 
     }
 
     try {
@@ -104,6 +111,7 @@ export default function DashProfile() {
         dispatch(updateFailure(data.message));
       } else {
         dispatch(updateSuccess(data));
+        setUpdateUserSuccess(("User's profile Updated successfully"))
       }
     } catch (error) {
       console.error("Network error:", error.message);
@@ -187,6 +195,9 @@ export default function DashProfile() {
         <span className="cursor-pointer underline">Delete Account</span>
         <span className="cursor-pointer underline">Sign Out</span>
       </div>
+      {updateUserSuccess && (
+        <Alert color='success' className="mt-5">{updateUserSuccess}</Alert>
+      )}
     </div>
   );
 }
