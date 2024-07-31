@@ -39,7 +39,7 @@ export default function CreatePost() {
           </div>
           <ReactQuill
             theme="snow"
-            placeholder="Write Something"
+            placeholder="Write Something..."
             className="h-72 mb-12 "
             required
           />
