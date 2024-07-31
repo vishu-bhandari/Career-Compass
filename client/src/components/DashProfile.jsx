@@ -17,9 +17,10 @@ import {
   deleteUserStart,
   deleteUserSuccess,
   deleteUserFailure,
-  signoutSuccess
+  signoutSuccess,
 } from "../redux/user/userSlice.js";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { Link } from "react-router-dom";
 
 export default function DashProfile() {
   const { currentUser, error } = useSelector((state) => state.user);
@@ -190,22 +191,21 @@ export default function DashProfile() {
     }
   };
 
-  const handleSignout=async()=>{
+  const handleSignout = async () => {
     try {
-      const res=await fetch('/api/user/signout',{
-        method:'POST'
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
       });
-      const data=res.json();
-      if(!res.ok){
+      const data = res.json();
+      if (!res.ok) {
         console.log(data.message);
-      }else{
+      } else {
         dispatch(signoutSuccess());
       }
-      
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
@@ -285,6 +285,17 @@ export default function DashProfile() {
         >
           {loading ? "Updating..." : "Update"}
         </Button>
+        {currentUser.isAdmin && (
+          <Link to="/create-post">
+            <Button
+              type="button"
+              gradientDuoTone='purpleToPink'
+              className="w-full"
+            >
+              Create a Post
+            </Button>
+          </Link>
+        )}
       </form>
       <div className="text-red-500 flex justify-between mt-5">
         <span
@@ -295,8 +306,9 @@ export default function DashProfile() {
         >
           Delete Account
         </span>
-        <span className="cursor-pointer underline"
-        onClick={handleSignout}>Sign Out</span>
+        <span className="cursor-pointer underline" onClick={handleSignout}>
+          Sign Out
+        </span>
       </div>
       {updateUserSuccess && (
         <Alert color="success" className="mt-5 ">
