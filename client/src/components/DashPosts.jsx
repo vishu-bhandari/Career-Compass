@@ -1,12 +1,14 @@
 import {
   Alert,
   Button,
+  Modal,
   Table,
   TableCell,
   TableHead,
   TableHeadCell,
 } from "flowbite-react";
 import { useEffect, useState } from "react";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -14,6 +16,8 @@ export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [postIdToDelete, setPostIdToDelete] = useState("");
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -41,7 +45,7 @@ export default function DashPosts() {
       const res = await fetch(
         `/api/post/getposts?userId=${currentUser._id}&startIndex=${startIndex}`
       );
-      const data =await res.json();
+      const data = await res.json();
       if (res.ok) {
         setUserPosts((prev) => [...prev, ...data.posts]);
         if (data.posts.length < 9) {
@@ -53,11 +57,31 @@ export default function DashPosts() {
     }
   };
 
+  const handleDeletePost = async () => {
+    setShowModal(false);
+    try {
+      const res = await fetch(
+        `api/post/deletepost/${postIdToDelete}/${currentUser._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.message);
+      } else {
+        setUserPosts((prev) => prev.filter((post) => post._id !== postIdToDelete));
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
-    <div className=" table-auto overflow-x-auto md:mx-auto p-3 scrollbar scrollbar-track-slate-100  scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500  ">
+    <div className="table-auto overflow-x-auto md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500">
       {currentUser.isAdmin && userPosts.length > 0 ? (
         <>
-          <Table hoverable className=" shadow-md">
+          <Table hoverable className="shadow-md">
             <TableHead>
               <TableHeadCell>Date Updated</TableHeadCell>
               <TableHeadCell>Post Image</TableHeadCell>
@@ -69,8 +93,8 @@ export default function DashPosts() {
               </TableHeadCell>
             </TableHead>
             {userPosts.map((post) => (
-              <Table.Body className=" divide-y">
-                <Table.Row className=" bg-white dark:border-gray-700 dark:bg-gray-800">
+              <Table.Body className="divide-y" key={post._id}>
+                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                   <TableCell>
                     {new Date(post.updatedAt).toLocaleDateString()}
                   </TableCell>
@@ -85,7 +109,7 @@ export default function DashPosts() {
                   </TableCell>
                   <TableCell>
                     <Link
-                      className=" font-medium text-gray-800 dark:text-white"
+                      className="font-medium text-gray-800 dark:text-white"
                       to={`/post/${post.slug}`}
                     >
                       {post.title}
@@ -93,13 +117,19 @@ export default function DashPosts() {
                   </TableCell>
                   <TableCell>{post.category}</TableCell>
                   <TableCell>
-                    <span className=" font-medium text-red-500 hover:underline cursor-pointer">
+                    <span
+                      onClick={() => {
+                        setShowModal(true);
+                        setPostIdToDelete(post._id);
+                      }}
+                      className="font-medium text-red-500 hover:underline cursor-pointer"
+                    >
                       Delete
                     </span>
                   </TableCell>
                   <TableCell>
                     <Link
-                      className="text-teal-500  hover:underline"
+                      className="text-teal-500 hover:underline"
                       to={`/update-post/${post._id}`}
                     >
                       <span>Edit</span>
@@ -112,15 +142,40 @@ export default function DashPosts() {
           {showMore && (
             <button
               onClick={handleShowMore}
-              className=" w-full text-teal-500 self-center text-sm py-7"
+              className="w-full text-teal-500 self-center text-sm py-7"
             >
               Show More
             </button>
           )}
         </>
       ) : (
-        <Alert color="failure">You have not posts yet!!</Alert>
+        <Alert color="failure">You have no posts yet!!</Alert>
       )}
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this post?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeletePost}>
+                Yes, I'm sure
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
