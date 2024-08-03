@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { useSelector } from "react-redux";
-import {FaCheck , FaTimes} from 'react-icons/fa'
+import { FaCheck, FaTimes } from "react-icons/fa";
 
 export default function DashUsers() {
   const { currentUser } = useSelector((state) => state.user);
@@ -55,7 +55,23 @@ export default function DashUsers() {
     }
   };
 
-  const handleDeleteUser = () => {};
+  const handleDeleteUser = async () => {
+      setShowModal(false);
+    
+    try {
+      const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsers((prev)=>prev.filter((user)=>user._id !== userIdToDelete));
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   return (
     <div className="w-full table-auto overflow-x-auto md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500">
@@ -85,7 +101,13 @@ export default function DashUsers() {
                   </TableCell>
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.isAdmin ? (<FaCheck className=' text-green-500' />) : (<FaTimes className='text-red-500' />) }</TableCell>
+                  <TableCell>
+                    {user.isAdmin ? (
+                      <FaCheck className=" text-green-500" />
+                    ) : (
+                      <FaTimes className="text-red-500" />
+                    )}
+                  </TableCell>
                   <TableCell>
                     <span
                       onClick={() => {
