@@ -12,43 +12,50 @@ import { useEffect, useState } from 'react';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import {useSelector} from 'react-redux'
+import { useSelector } from 'react-redux';
 
 export default function UpdatePost() {
-  const {currentUser} =useSelector((state)=>state.user);
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(null);
   const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
   const [publishError, setPublishError] = useState(null);
-
   const { postId } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        
         const res = await fetch(`/api/post/getposts?postId=${postId}`);
         const data = await res.json();
-        console.log(data);
         if (!res.ok) {
-          console.log(data.message);
+          console.log('Error fetching post:', data.message);
           setPublishError(data.message);
           return;
         }
         if (res.ok) {
-          setPublishError(null);
-          setFormData(data.posts[0]);
+          
+          const postData = data.posts[0];
+          // Ensure formData includes _id
+          setFormData({
+            _id: postData._id,
+            title: postData.title || '',
+            category: postData.category || 'uncategorized',
+            content: postData.content || '',
+            image: postData.image || '',
+          });
         }
       } catch (error) {
-        console.log(error);
+        console.log('Fetch post error:', error.message);
       }
     };
 
     fetchPost();
   }, [postId]);
 
-  const handleUpdloadImage = async () => {
+  const handleUploadImage = async () => {
     try {
       if (!file) {
         setImageUploadError('Please select an image');
@@ -74,22 +81,30 @@ export default function UpdatePost() {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setImageUploadProgress(null);
             setImageUploadError(null);
-            setFormData({ ...formData, image: downloadURL });
+            setFormData((prevFormData) => ({
+              ...prevFormData,
+              image: downloadURL,
+            }));
           });
         }
       );
     } catch (error) {
       setImageUploadError('Image upload failed');
       setImageUploadProgress(null);
-      console.log(error);
+      console.log('Upload image error:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+   
+    if (!formData._id) {
+      setPublishError('Post ID is missing');
+      return;
+    }
     try {
       const res = await fetch(`/api/post/updatepost/${formData._id}/${currentUser._id}`, {
-        method: 'PUT', 
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -100,7 +115,6 @@ export default function UpdatePost() {
         setPublishError(data.message);
         return;
       }
-
       if (res.ok) {
         setPublishError(null);
         navigate(`/post/${data.slug}`);
@@ -122,20 +136,20 @@ export default function UpdatePost() {
             id='title'
             className='flex-1'
             onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
+              setFormData((prevFormData) => ({ ...prevFormData, title: e.target.value }))
             }
-            value={formData.title}
+            value={formData.title || ''}
           />
           <Select
             onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
+              setFormData((prevFormData) => ({ ...prevFormData, category: e.target.value }))
             }
-            value={formData.category}
+            value={formData.category || 'uncategorized'}
           >
             <option value='uncategorized'>Select a category</option>
-            <option value='javascript'>Career Advice</option>
-            <option value='reactjs'>Interview Preparation</option>
-            <option value='nextjs'>Industry Blogs</option>
+            <option value='javascript'>JavaScript</option>
+            <option value='reactjs'>React.js</option>
+            <option value='nextjs'>Next.js</option>
           </Select>
         </div>
         <div className='flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3'>
@@ -149,8 +163,8 @@ export default function UpdatePost() {
             gradientDuoTone='purpleToBlue'
             size='sm'
             outline
-            onClick={handleUpdloadImage}
-            disabled={!!imageUploadProgress} // Changed here
+            onClick={handleUploadImage}
+            disabled={imageUploadProgress}
           >
             {imageUploadProgress ? (
               <div className='w-16 h-16'>
@@ -174,13 +188,13 @@ export default function UpdatePost() {
         )}
         <ReactQuill
           theme='snow'
+          value={formData.content || ''}
           placeholder='Write something...'
           className='h-72 mb-12'
           required
           onChange={(value) => {
-            setFormData({ ...formData, content: value });
+            setFormData((prevFormData) => ({ ...prevFormData, content: value }));
           }}
-          value={formData.content}
         />
         <Button type='submit' gradientDuoTone='purpleToPink'>
           Update Post
