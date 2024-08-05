@@ -9,6 +9,10 @@ const commentSchema=new mongoose.Schema({
         type:String,
         required:true
     },
+    userId:{
+        type:String,
+        required:true,
+    },
     likes: {
         type:Array,
         default:[]
