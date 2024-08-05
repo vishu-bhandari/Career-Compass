@@ -3,6 +3,7 @@ import moment from "moment";
 import Modal from "./Modal";
 import { FaThumbsUp } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import { Textarea } from "flowbite-react";
 
 export default function Comment({ comment, onLike }) {
   const { currentUser } = useSelector((state) => state.user);
@@ -10,6 +11,8 @@ export default function Comment({ comment, onLike }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent,setEditedContent]=useState(comment.content);
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,14 +38,20 @@ export default function Comment({ comment, onLike }) {
     }
   }, [comment]);
 
-  const handleImageClick = () => {
+  function handleImageClick() {
     if (user.profilePicture) {
       setIsModalOpen(true);
     }
-  };
+  }
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedContent(comment.content);
+    
   };
 
   return (
@@ -78,6 +87,17 @@ export default function Comment({ comment, onLike }) {
                 {moment(comment.createdAt).fromNow()}
               </span>
             </div>
+            {isEditing ? (
+              <Textarea
+                className="w-full p-2 text-gray-700 rounded-md
+               resize-none focus:outline-none focus:bg-gray-300"
+                rows="3"
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+              ></Textarea>
+            ) : (
+              <>
+
             <p className="text-gray-500 mb-2">{comment.content}</p>
             <div className="flex items-center gap-2 pt-2 text-sm border-t dark:border-gray-700 max-w-fit ">
               <button
@@ -97,7 +117,19 @@ export default function Comment({ comment, onLike }) {
                     " " +
                     (comment.numberOfLikes === 1 ? "Like" : "likes")}
               </p>
+              {currentUser &&
+                (currentUser._id === comment.userId || currentUser.isAdmin) && (
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="text-gray-400 hover:text-blue-500"
+                  >
+                    Edit
+                  </button>
+                )}
             </div>
+              </>
+            )}
           </div>
         </>
       )}
