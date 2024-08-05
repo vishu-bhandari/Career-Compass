@@ -32,3 +32,43 @@ export const getPostComments = async (req,res,next) => {
     next(error);
   }
 };
+
+export const likeComment = async (req, res, next) => {
+  try {
+    // Find the comment by its ID from the request parameters
+    const comment = await Comment.findById(req.params.commentId);
+    
+
+    // If the comment doesn't exist, send an error response
+    if (!comment) {
+      return next(errorHandler(404, 'Comment not found'));
+    }
+
+    // Find the index of the user ID in the list of likes
+    const userIndex = comment.likes.indexOf(req.user.id);
+    
+    // If the user ID is not found in the list of likes, the user hasn't liked the comment yet
+    if (userIndex === -1) {
+      // Increment the number of likes
+      comment.numberOfLikes += 1;
+      // Add the user ID to the list of likes
+      comment.likes.push(req.user.id);
+    } else {
+      // If the user ID is found in the list of likes, the user has already liked the comment
+      // Decrement the number of likes
+      comment.numberOfLikes -= 1;
+      // Remove the user ID from the list of likes
+      comment.likes.splice(userIndex, 1);
+    }
+    
+    // Save the updated comment
+    await comment.save();
+    
+    // Respond with the updated comment
+    res.status(200).json(comment);
+    
+  } catch (error) {
+    // Handle any errors that occur
+    next(error);
+  }
+};
