@@ -1,33 +1,56 @@
 import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react";
-import { Link,  useLocation } from "react-router-dom";
-import React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
-import { FaMoon } from "react-icons/fa";
+import { FaMoon, FaSun } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice";
-import {signoutSuccess} from "../redux/user/userSlice";
+import { signoutSuccess } from "../redux/user/userSlice";
 
 export default function Header() {
   const path = useLocation().pathname;
+  const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const handleSignout=async()=>{
+  const { theme } = useSelector((state) => state.theme);
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSignout = async () => {
     try {
-      const res=await fetch('/api/user/signout',{
-        method:'POST'
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
       });
-      const data=res.json();
-      if(!res.ok){
+      const data = res.json();
+      if (!res.ok) {
         console.log(data.message);
-      }else{
+      } else {
         dispatch(signoutSuccess());
-        
       }
-      
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
+
+  console.log(searchTerm);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTermFromUrl = urlParams.get("searchTerm");
+    if (searchTermFromUrl) {
+      setSearchTerm(searchTermFromUrl);
+    }
+  }, [location.search]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("searchTerm", searchTerm);
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
+
   return (
     <>
       <Navbar className=" border-b-2 ">
@@ -40,10 +63,12 @@ export default function Header() {
           </span>
           Compass
         </Link>
-        <form>
+        <form onSubmit={handleSubmit}>
           <TextInput
             type="text"
             placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             rightIcon={AiOutlineSearch}
             className="hidden lg:inline "
           />
@@ -58,14 +83,19 @@ export default function Header() {
             pill
             onClick={() => dispatch(toggleTheme())}
           >
-            <FaMoon />
+            {theme === "light" ? <FaSun /> : <FaMoon />}
           </Button>
           {currentUser ? (
             <Dropdown
               arrowIcon={false}
               inline
               label={
-                <Avatar rounded  status={currentUser ? 'online' : undefined} alt="user" img={currentUser.profilePicture}></Avatar>
+                <Avatar
+                  rounded
+                  status={currentUser ? "online" : undefined}
+                  alt="user"
+                  img={currentUser.profilePicture}
+                ></Avatar>
               }
             >
               <Dropdown.Header>
@@ -78,7 +108,7 @@ export default function Header() {
                 <Dropdown.Item>Profile</Dropdown.Item>
               </Link>
               <Dropdown.Divider />
-              <Dropdown.Item onClick={handleSignout} >Sign Out</Dropdown.Item>
+              <Dropdown.Item onClick={handleSignout}>Sign Out</Dropdown.Item>
             </Dropdown>
           ) : (
             <Link to="/sign-in">
