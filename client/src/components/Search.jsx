@@ -75,7 +75,7 @@ export default function Search() {
   };
 
   const handleShowMore=async()=>{
-    const numberOfPosts=post.length;
+    const numberOfPosts=posts.length;
     const startIndex=numberOfPosts;
     const urlParams=new URLSearchParams(location.search);
     urlParams.set('startIndex', startIndex);
@@ -151,7 +151,7 @@ export default function Search() {
             posts.map((post) => <PostCard key={post._id} post={post} />)}
 
             {
-              showMore && <button onClick={handleShowMore} className=" text-teal-500 text-lg p-7 hover:underline ">Show More </button>
+              showMore && <button onClick={handleShowMore} className=" text-teal-500 text-lg p-7 hover:underline mx-auto  ">Show More </button>
             }
         </div>
       </div>
